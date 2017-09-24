@@ -5,9 +5,9 @@ import java.util.List;
 
 public class ParsedText {
 
-    private List<Sentence> sentences = new ArrayList ();
+    private List<SentenceSortedWords> sentences = new ArrayList ();
 
-    public ParsedText add(Sentence sentence) {
+    public ParsedText add(SentenceSortedWords sentence) {
         sentences.add(sentence);
         return this;
     }

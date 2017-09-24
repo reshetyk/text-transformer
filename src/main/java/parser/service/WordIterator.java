@@ -30,7 +30,7 @@ public class WordIterator implements Iterator<String>, Iterable<String>{
             return false;
 
         word = text.substring(startWord, endWord).trim();
-        while (!word.matches("[A-z]+")) {
+        while (word.isEmpty() || word.matches("[\\p{Punct}]+")) {
             next();
             if (endWord == BreakIterator.DONE)
                 return false;

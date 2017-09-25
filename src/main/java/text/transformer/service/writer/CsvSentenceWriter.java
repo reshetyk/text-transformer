@@ -1,7 +1,7 @@
-package parser.service;
+package text.transformer.service.writer;
 
 import org.apache.commons.io.IOUtils;
-import parser.domain.SentenceSortedWords;
+import text.transformer.domain.SentenceSortedWords;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -12,12 +12,13 @@ import java.nio.file.Path;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class CsvSentenceWriter {
+public class CsvSentenceWriter implements SentenceWriter {
     private String delimiter;
     private int maxWords;
     private OutputStream outputStream;
     private Path temp;
     private FileOutputStream fos;
+    private String prefix;
 
     public CsvSentenceWriter(OutputStream outputStream, String delimiter) throws IOException {
         this.outputStream = outputStream;
@@ -26,10 +27,25 @@ public class CsvSentenceWriter {
         fos = new FileOutputStream(temp.toFile());
     }
 
-    public void write (SentenceSortedWords sentence, String prefix) throws IOException {
+    @Override
+    public void before() {
+
+    }
+
+    @Override
+    public void write (SentenceSortedWords sentence) throws Exception {
         maxWords = Math.max(maxWords, sentence.countWords());
         writeToTempFile(toCsv(sentence, prefix).getBytes());
 //        outputStream.flush();
+    }
+
+    @Override
+    public void after() {
+        try {
+            writeHeader();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void writeToTempFile(byte[] bytes) throws IOException {

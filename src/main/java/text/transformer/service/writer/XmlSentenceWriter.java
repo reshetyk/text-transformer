@@ -1,8 +1,8 @@
-package parser.service;
+package text.transformer.service.writer;
 
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.codehaus.stax2.XMLStreamWriter2;
-import parser.domain.SentenceSortedWords;
+import text.transformer.domain.SentenceSortedWords;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -10,7 +10,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.stream.XMLStreamException;
 import java.io.OutputStream;
 
-public class XmlSentenceWriter {
+public class XmlSentenceWriter implements SentenceWriter{
     private final String encoding;
     private final String version;
     private final XMLStreamWriter2 writer;
@@ -30,8 +30,27 @@ public class XmlSentenceWriter {
         writer.writeStartElement(tagName);
     }
 
-    public void writeSentence(SentenceSortedWords sentence) throws XMLStreamException, JAXBException {
+    @Override
+    public void before() {
+        try {
+            writeStartDocument("text");
+        } catch (XMLStreamException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void write(SentenceSortedWords sentence) throws Exception {
         marshaller.marshal(sentence, writer);
+    }
+
+    @Override
+    public void after() {
+        try {
+            writeEndDocument();
+        } catch (XMLStreamException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void writeEndDocument() throws XMLStreamException {

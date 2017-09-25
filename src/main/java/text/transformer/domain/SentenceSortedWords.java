@@ -1,4 +1,4 @@
-package parser.domain;
+package text.transformer.domain;
 
 import com.google.common.collect.TreeMultiset;
 

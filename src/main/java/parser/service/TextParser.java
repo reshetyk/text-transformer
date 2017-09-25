@@ -18,10 +18,16 @@ public class TextParser {
             "B.C.", "b.c.", "a.m.", "A.M.", "p.m.", "P.M.", "A.D.", "a.d.", "B.C.E.", "C.E.",
             "i.e.", "etc.", "e.g.", "al.");
 
-    public void parse(InputStream inputStream, OutputStream outputStream) throws Exception {
-        Scanner wordScanner = new Scanner(inputStream);
+    private String encoding;
 
-        XmlSentenceWriter xmlWriter = new XmlSentenceWriter("UTF-8", "1.0", outputStream);
+    public TextParser(String encoding) {
+        this.encoding = encoding;
+    }
+
+    public void parse(InputStream inputStream, OutputStream outputStream) throws Exception {
+        Scanner wordScanner = new Scanner(inputStream, encoding);
+
+        XmlSentenceWriter xmlWriter = new XmlSentenceWriter(encoding, "1.0", outputStream);
         xmlWriter.writeStartDocument("text");
 
 //        CsvSentenceWriter csvWriter = new CsvSentenceWriter(outputStream, ", ");
@@ -55,7 +61,8 @@ public class TextParser {
         return word
                 .trim()
                 .replaceAll("\\p{Punct}$|^\\p{Punct}", "")
-                .replace("’", "'");
+                .replaceAll("’", "'")
+                .replace((char) 8217, (char) 39);
 
     }
 

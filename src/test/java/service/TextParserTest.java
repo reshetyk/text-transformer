@@ -1,6 +1,8 @@
 package service;
 
 import org.apache.commons.io.IOUtils;
+import org.custommonkey.xmlunit.XMLAssert;
+import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Test;
 import parser.service.TextParser;
 
@@ -11,44 +13,37 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class TextParserTest {
+    private final InputStream input = getContextClassLoader().getResourceAsStream("input/small.in");
 
     @Test
-    public void checkThatInputTextIsSplitIntoSentencesAndWords() throws Exception {
-/*
-        ParsedText parsedTextExpected = new ParsedText();
-        parsedTextExpected
-                .add(new SentenceSortedWords()
-                        .add(new Word("a"))
-                        .add(new Word("had"))
-                        .add(new Word("lamb"))
-                        .add(new Word("little"))
-                        .add(new Word("Mary")))
-                .add(new SentenceSortedWords()
-                        .add(new Word("Aesop"))
-                        .add(new Word("and"))
-                        .add(new Word("called"))
-                        .add(new Word("came"))
-                        .add(new Word("for"))
-                        .add(new Word("Peter"))
-                        .add(new Word("the"))
-                        .add(new Word("wolf")))
-                .add(new SentenceSortedWords()
-                        .add(new Word("Cinderella"))
-                        .add(new Word("likes"))
-                        .add(new Word("shoes")));
-*/
-//        String text = "Mary had a little lamb .\n\n Peter called for the wolf , and Aesop came .\n Cinderella likes shoes..";
-        InputStream input = Thread.currentThread().getContextClassLoader().getResourceAsStream("input/small.in");
-        InputStream expected = Thread.currentThread().getContextClassLoader().getResourceAsStream("expected/small.csv");
+    public void testConvertingToCsv() throws Exception {
+        try (ByteArrayOutputStream actual = new ByteArrayOutputStream();
+             InputStream expected = getContextClassLoader().getResourceAsStream("expected/small.csv")) {
 
-        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+            new TextParser().parse(input, actual);
 
-        new TextParser().parse(input, actual);
-
-        assertThat(new String (actual.toByteArray()), is(IOUtils.toString(expected)));
-//        assertThat(parsedTextExpected).isEqualToComparingFieldByField(parsedTextActual);
-
+            assertThat(new String(actual.toByteArray()), is(IOUtils.toString(expected)));
+        }
     }
 
+    @Test
+    public void testConvertingToXml() throws Exception {
+        try (ByteArrayOutputStream actual = new ByteArrayOutputStream();
+             InputStream expected = getContextClassLoader().getResourceAsStream("expected/small.xml")) {
 
+            new TextParser().parse(input, actual);
+
+            XMLUnit.setIgnoreWhitespace(true);
+            XMLUnit.setCompareUnmatched(true);
+
+            String actualXml = new String(actual.toByteArray());
+            String expectedXml = IOUtils.toString(expected);
+
+            XMLAssert.assertXMLEqual(expectedXml, actualXml);
+        }
+    }
+
+    private ClassLoader getContextClassLoader() {
+        return Thread.currentThread().getContextClassLoader();
+    }
 }

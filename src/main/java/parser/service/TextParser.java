@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import static java.util.Arrays.asList;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class TextParser {
 
@@ -21,10 +21,10 @@ public class TextParser {
     public void parse(InputStream inputStream, OutputStream outputStream) throws Exception {
         Scanner wordScanner = new Scanner(inputStream);
 
-//        XmlSentenceWriter xmlWriter = new XmlSentenceWriter("UTF-8", "1.0", outputStream);
-//        xmlWriter.writeStartDocument("text");
+        XmlSentenceWriter xmlWriter = new XmlSentenceWriter("UTF-8", "1.0", outputStream);
+        xmlWriter.writeStartDocument("text");
 
-        CsvSentenceWriter csvWriter = new CsvSentenceWriter(outputStream, ", ");
+//        CsvSentenceWriter csvWriter = new CsvSentenceWriter(outputStream, ", ");
         String charSeq;
         int sentenceNum = 0;
         while (wordScanner.hasNext()) {
@@ -33,18 +33,17 @@ public class TextParser {
                 parseIntoCleanWords(charSeq, sentence);
             }
             parseIntoCleanWords(charSeq, sentence);
-//            xmlWriter.writeSentence(sentence);
-            csvWriter.write(sentence, "Sentence " + ++sentenceNum);
+            xmlWriter.writeSentence(sentence);
+//            csvWriter.write(sentence, "Sentence " + ++sentenceNum);
         }
-        csvWriter.writeHeader();
-//        xmlWriter.writeEndDocument();
+//        csvWriter.writeHeader();
+        xmlWriter.writeEndDocument();
 
         outputStream.flush();
 
     }
 
     private static void parseIntoCleanWords(String charSeq, SentenceSortedWords sentence) {
-        sentence.addOriginal(charSeq);
         Arrays.stream(charSeq.split("[,\\(\\):;\\[\\]\\{\\}]")).forEach(word -> {
             if (isNotBlank(clean(word)))
                 sentence.add(isShortening(word) ? word.trim() : clean(word));

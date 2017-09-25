@@ -6,11 +6,8 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.unmodifiableCollection;
 
@@ -21,14 +18,12 @@ final public class SentenceSortedWords {
     @XmlElement(name = "word")
     final private TreeMultiset<String> words = TreeMultiset.create(getCustomIgnoreCaseComparator());
 
-    final private List<String> origWords = new ArrayList<>();
-
     public SentenceSortedWords add(String word) {
         words.add(word);
         return this;
     }
 
-    public int countWords () {
+    public int countWords() {
         return words.size();
     }
 
@@ -39,28 +34,28 @@ final public class SentenceSortedWords {
 
     private Comparator<String> getCustomIgnoreCaseComparator() {
         return (s1, s2) -> {
-                int n1 = s1.length();
-                int n2 = s2.length();
-                int min = Math.min(n1, n2);
-                for (int i = 0; i < min; i++) {
-                    char c1 = s1.charAt(i);
-                    char c2 = s2.charAt(i);
+            int n1 = s1.length();
+            int n2 = s2.length();
+            int min = Math.min(n1, n2);
+            for (int i = 0; i < min; i++) {
+                char c1 = s1.charAt(i);
+                char c2 = s2.charAt(i);
+                if (c1 != c2) {
+                    c1 = Character.toUpperCase(c1);
+                    c2 = Character.toUpperCase(c2);
                     if (c1 != c2) {
-                        c1 = Character.toUpperCase(c1);
-                        c2 = Character.toUpperCase(c2);
+                        c1 = Character.toLowerCase(c1);
+                        c2 = Character.toLowerCase(c2);
                         if (c1 != c2) {
-                            c1 = Character.toLowerCase(c1);
-                            c2 = Character.toLowerCase(c2);
-                            if (c1 != c2) {
-                                // No overflow because of numeric promotion
-                                return c1 - c2;
-                            }
-                        } else
-                            n2 += 1;
-                    }
+                            // No overflow because of numeric promotion
+                            return c1 - c2;
+                        }
+                    } else
+                        n2 += 1;
                 }
-                return n1 - n2;
-            };
+            }
+            return n1 - n2;
+        };
     }
 
     @Override
@@ -82,14 +77,6 @@ final public class SentenceSortedWords {
 
     @Override
     public String toString() {
-        return "SentenceSortedWords{" +
-                "words=" + words +
-                ";\norigWords=" + origWords.stream().collect(Collectors.joining(" ")) +
-                '}';
-    }
-
-    public void addOriginal(String word) {
-        origWords.add(word);
-
+        return words.toString();
     }
 }

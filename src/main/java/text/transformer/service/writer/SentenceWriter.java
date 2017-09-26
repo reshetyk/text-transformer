@@ -4,9 +4,13 @@ import text.transformer.domain.SentenceSortedWords;
 
 public interface SentenceWriter {
 
-    void before() ;
+    void startWriting() ;
 
-    void write(SentenceSortedWords sentence) throws Exception;
+    void write(SentenceSortedWords sentence, int sentenceNum) throws Exception;
 
-    void after();
+    void endWriting();
+
+    void finalizeWriting ();
+
+
 }

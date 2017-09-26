@@ -10,7 +10,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.stream.XMLStreamException;
 import java.io.OutputStream;
 
-public class XmlSentenceWriter implements SentenceWriter{
+public class XmlSentenceWriter implements SentenceWriter {
     private final String encoding;
     private final String version;
     private final XMLStreamWriter2 writer;
@@ -25,13 +25,8 @@ public class XmlSentenceWriter implements SentenceWriter{
         this.marshaller.setProperty(Marshaller.JAXB_ENCODING, encoding);
     }
 
-    public void writeStartDocument(String tagName) throws XMLStreamException {
-        writer.writeStartDocument(version, encoding, true);
-        writer.writeStartElement(tagName);
-    }
-
     @Override
-    public void before() {
+    public void startWriting() {
         try {
             writeStartDocument("text");
         } catch (XMLStreamException e) {
@@ -40,12 +35,13 @@ public class XmlSentenceWriter implements SentenceWriter{
     }
 
     @Override
-    public void write(SentenceSortedWords sentence) throws Exception {
+    public void write(SentenceSortedWords sentence, int sentenceNum) throws Exception {
         marshaller.marshal(sentence, writer);
+        writer.flush();
     }
 
     @Override
-    public void after() {
+    public void endWriting() {
         try {
             writeEndDocument();
         } catch (XMLStreamException e) {
@@ -53,9 +49,23 @@ public class XmlSentenceWriter implements SentenceWriter{
         }
     }
 
+    @Override
+    public void finalizeWriting() {
+        try {
+            if (writer != null)
+                writer.close();
+        } catch (XMLStreamException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void writeStartDocument(String tagName) throws XMLStreamException {
+        writer.writeStartDocument(version, encoding, true);
+        writer.writeStartElement(tagName);
+    }
+
     public void writeEndDocument() throws XMLStreamException {
         writer.writeEndDocument();
         writer.flush();
-        writer.close();
     }
 }

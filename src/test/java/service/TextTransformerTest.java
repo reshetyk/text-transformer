@@ -3,39 +3,41 @@ package service;
 import org.apache.commons.io.IOUtils;
 import org.custommonkey.xmlunit.XMLAssert;
 import org.custommonkey.xmlunit.XMLUnit;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 import text.transformer.service.TextAnalyzer;
 import text.transformer.service.TextTransformer;
 import text.transformer.service.writer.CsvSentenceWriter;
 import text.transformer.service.writer.XmlSentenceWriter;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class TextTransformerTest {
 
-    public static final String ENCODING = "UTF-8";
+    private static final String ENCODING = "UTF-8";
+    private InputStream largeInput;
+    private InputStream smallInput;
 
-    private final InputStream input = getContextClassLoader().getResourceAsStream("input/small.in");
+    @Before
+    public void setUp() throws Exception {
+        largeInput = getContextClassLoader().getResourceAsStream("input/large.in");
+        smallInput = getContextClassLoader().getResourceAsStream("input/small.in");
+    }
 
-    @Ignore
     @Test
     public void testConvertingToCsv() throws Exception {
         try (ByteArrayOutputStream actual = new ByteArrayOutputStream();
              InputStream expected = getContextClassLoader().getResourceAsStream("expected/small.csv")) {
 
             TextTransformer textTransformer = new TextTransformer(
-                    new CsvSentenceWriter(actual, ", "),
+                    new CsvSentenceWriter(actual, ", ", ENCODING),
                     new TextAnalyzer(), ENCODING
             );
 
-            textTransformer.transform(input);
+            textTransformer.transform(smallInput);
 
             assertThat(actual.toString(ENCODING), is(IOUtils.toString(expected, ENCODING)));
         }
@@ -51,7 +53,7 @@ public class TextTransformerTest {
                     new TextAnalyzer(), ENCODING
             );
 
-            textTransformer.transform(input);
+            textTransformer.transform(smallInput);
 
             XMLUnit.setIgnoreWhitespace(true);
             XMLUnit.setCompareUnmatched(true);
@@ -60,19 +62,50 @@ public class TextTransformerTest {
         }
     }
 
-//    @Ignore
+    /* In 'build.gradle' define jvmArgs '-Xmx32m' */
+
     @Test
-    public void testConvertingLargeData() throws Exception {
-        try (InputStream inputStream = getContextClassLoader().getResourceAsStream("input/large.in");
-             OutputStream fos = new FileOutputStream("D:\\temp\\1.txt")) {
+    public void testConvertingLargeDataXml() throws Exception {
+        File tempFile = File.createTempFile("text-transformer-test", "large");
+        try (OutputStream fos = new FileOutputStream(tempFile)) {
 
             TextTransformer textTransformer = new TextTransformer(
-                    new CsvSentenceWriter(fos, ", "),
-                    new TextAnalyzer(), ENCODING
+                    new XmlSentenceWriter(ENCODING, "1.0", fos),
+                    new TextAnalyzer(),
+                    ENCODING
             );
 
-            textTransformer.transform(inputStream);
+            textTransformer.transform(largeInput);
+
+            assertThat(tempFile.length() > 0, is(true));
+
+        } finally {
+            if (tempFile.exists())
+                tempFile.delete();
         }
+
+    }
+
+    @Test
+    public void testConvertingLargeDataCvs() throws Exception {
+        File tempFile = File.createTempFile("text-transformer-test", "large");
+        try (OutputStream fos = new FileOutputStream(tempFile)) {
+
+            TextTransformer textTransformer = new TextTransformer(
+                    new CsvSentenceWriter(fos, ", ", ENCODING),
+                    new TextAnalyzer(),
+                    ENCODING
+            );
+
+            textTransformer.transform(largeInput);
+
+            assertThat(tempFile.length() > 0, is(true));
+
+        } finally {
+            if (tempFile.exists())
+                tempFile.delete();
+        }
+
     }
 
     private static ClassLoader getContextClassLoader() {

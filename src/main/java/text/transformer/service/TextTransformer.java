@@ -20,21 +20,25 @@ public class TextTransformer {
     }
 
     public void transform(InputStream inputStream) throws Exception {
+        try {
+            sentenceWriter.startWriting();
 
-        sentenceWriter.before();
+            int sentenceNum = 0;
+            SentenceIterator sentenceIterator = new SentenceIterator(inputStream, encoding, textAnalyzer);
+            while (sentenceIterator.hasNext()) {
+                SentenceSortedWords sentence = new SentenceSortedWords();
 
-        int sentenceNum = 0;
-        SentenceIterator sentenceIterator = new SentenceIterator(inputStream, encoding, textAnalyzer);
-        while (sentenceIterator.hasNext()) {
-            SentenceSortedWords sentence = new SentenceSortedWords();
+                WordIterator wordIterator = new WordIterator(sentenceIterator.next(), textAnalyzer);
+                while (wordIterator.hasNext()) {
+                    sentence.add(wordIterator.next());
+                }
 
-            WordIterator wordIterator = new WordIterator(sentenceIterator.next(), textAnalyzer);
-            while (wordIterator.hasNext()) {
-                sentence.add(wordIterator.next());
+                sentenceWriter.write(sentence, ++sentenceNum);
             }
+            sentenceWriter.endWriting();
 
-            sentenceWriter.write(sentence);
+        } finally {
+            sentenceWriter.finalizeWriting();
         }
-        sentenceWriter.after();
     }
 }
